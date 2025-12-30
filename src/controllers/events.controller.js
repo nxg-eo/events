@@ -177,9 +177,40 @@ async function registerForEvent(req, res) {
     }
 }
 
+/**
+ * Delete event (admin only)
+ * DELETE /api/events/:id
+ */
+async function deleteEvent(req, res) {
+    try {
+        const eventId = req.params.id;
+
+        const event = await Event.findByIdAndDelete(eventId);
+
+        if (!event) {
+            return res.status(404).json({
+                success: false,
+                error: "Event not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            message: "Event deleted successfully"
+        });
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        res.status(500).json({
+            success: false,
+            error: "Failed to delete event"
+        });
+    }
+}
+
 module.exports = {
     getEvents,
     getEventById,
     createEvent,
-    registerForEvent
+    registerForEvent,
+    deleteEvent
 };

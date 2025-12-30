@@ -12,6 +12,8 @@ const honeycommbWebhookRoutes = require('./routes/webhooks/honeycommb.routes');
 const honeycommbRoutes = require('./routes/honeycommb.routes');
 const eventsRoutes = require('./routes/events.routes');
 const authRoutes = require('./routes/auth.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
+const usersRoutes = require('./routes/users.routes');
 const honeycommbController = require('./controllers/webhooks/honeycommb.controller');
 
 // Create Express app
@@ -90,6 +92,12 @@ app.use('/api/events', eventsRoutes);
 
 // Auth API routes
 app.use('/api/auth', authRoutes);
+
+// Dashboard API routes (admin only)
+app.use('/api/dashboard', dashboardRoutes);
+
+// Users API routes (admin only)
+app.use('/api/users', usersRoutes);
 
 // ==================== ERROR HANDLING ====================
 app.use(errorMiddleware);

@@ -10,5 +10,6 @@ router.get('/:id', eventsController.getEventById);
 // Protected routes (require authentication)
 router.post('/', authMiddleware, eventsController.createEvent);
 router.post('/:id/register', authMiddleware, eventsController.registerForEvent);
+router.delete('/:id', authMiddleware, eventsController.deleteEvent);
 
 module.exports = router;
