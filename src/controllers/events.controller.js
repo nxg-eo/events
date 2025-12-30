@@ -1,6 +1,11 @@
 const Event = require('../models/Event');
 const User = require('../models/User');
 const Registration = require('../models/Registration');
+const multer = require('multer');
+
+// Configure multer for file uploads
+const storage = multer.memoryStorage(); // Store files in memory for now
+const upload = multer({ storage: storage });
 
 /**
  * Get events with filtering and search
@@ -82,11 +87,39 @@ async function getEventById(req, res) {
  */
 async function createEvent(req, res) {
     try {
+        // Extract form data from multipart/form-data
         const eventData = {
-            ...req.body,
+            title: req.body.title,
+            description: req.body.description,
+            venue: req.body.venue,
+            location: req.body.location,
             chapter: req.body.chapter || 'EO Dubai', // Default to EO Dubai
+            eventType: req.body.eventType || 'in-person',
+            startDate: req.body.startDate,
+            endDate: req.body.endDate,
+            registrationOpenDate: req.body.registrationOpenDate,
+            registrationCloseDate: req.body.registrationCloseDate,
+            capacity: parseInt(req.body.capacity) || 100,
+            memberPrice: parseFloat(req.body.memberPrice) || 0,
+            guestPrice: parseFloat(req.body.guestPrice) || 0,
+            maxGuestsPerRegistration: parseInt(req.body.maxGuestsPerRegistration) || 5,
+            contactEmail: req.body.contactEmail,
+            contactPhone: req.body.contactPhone,
+            isEODubaiOnly: req.body.isEODubaiOnly === 'true' || req.body.isEODubaiOnly === 'on',
+            allowGuests: req.body.allowGuests === 'true' || req.body.allowGuests === 'on',
+            waitlistEnabled: req.body.waitlistEnabled === 'true' || req.body.waitlistEnabled === 'on',
+            requiresApproval: req.body.requiresApproval === 'true' || req.body.requiresApproval === 'on',
             createdBy: req.user._id
         };
+
+        // Handle file uploads (for now, just store filenames or skip)
+        if (req.files && req.files.coverImage && req.files.coverImage[0]) {
+            eventData.coverImage = req.files.coverImage[0].originalname;
+        }
+
+        if (req.files && req.files.gallery && req.files.gallery.length > 0) {
+            eventData.gallery = req.files.gallery.map(file => file.originalname);
+        }
 
         const event = new Event(eventData);
         await event.save();
