@@ -52,9 +52,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 
 // ==================== DATABASE CONNECTION ====================
-mongoose.connect(config.MONGODB_URI || "mongodb://localhost:27017/eo_dubai_events")
+const mongoUri = config.MONGODB_URI || "mongodb://localhost:27017/eo_dubai_events";
+
+mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+})
 .then(() => console.log("✅ MongoDB connected successfully"))
-.catch(err => console.error("❌ MongoDB connection error:", err));
+.catch(err => {
+    console.error("❌ MongoDB connection error:", err);
+    console.error("💡 Make sure MONGODB_URI is set in Railway environment variables");
+    console.error("💡 Current URI:", mongoUri.replace(/:([^:@]{4})[^:@]*@/, ':****@')); // Hide password
+});
 
 // ==================== ROUTES ====================
 

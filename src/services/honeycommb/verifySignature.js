@@ -15,7 +15,7 @@ function verifySignature(rawBody, signatureHeader) {
         }
 
         if (!signatureHeader) {
-            console.error('❌ Missing X-Honeycommb-Signature header');
+            console.warn('⚠️ Missing X-Honeycommb-Signature header (expected during testing)');
             return false;
         }
 
