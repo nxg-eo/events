@@ -84,6 +84,7 @@ async function createEvent(req, res) {
     try {
         const eventData = {
             ...req.body,
+            chapter: req.body.chapter || 'EO Dubai', // Default to EO Dubai
             createdBy: req.user._id
         };
 
@@ -99,7 +100,7 @@ async function createEvent(req, res) {
         console.error('Error creating event:', error);
         res.status(500).json({
             success: false,
-            error: "Failed to create event"
+            error: error.message || "Failed to create event"
         });
     }
 }
