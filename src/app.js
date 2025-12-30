@@ -9,6 +9,7 @@ const errorMiddleware = require('./middlewares/error.middleware');
 
 // Import routes
 const honeycommbWebhookRoutes = require('./routes/webhooks/honeycommb.routes');
+const honeycommbController = require('./controllers/webhooks/honeycommb.controller');
 
 // Create Express app
 const app = express();
@@ -77,6 +78,9 @@ app.get('/health', (req, res) => {
 
 // Webhook routes
 app.use('/api/webhooks', honeycommbWebhookRoutes);
+
+// Webhook logs (for debugging)
+app.get('/api/honeycommb/webhook-logs', honeycommbController.getWebhookLogs);
 
 // API routes (to be added later)
 // app.use('/api/events', eventRoutes);

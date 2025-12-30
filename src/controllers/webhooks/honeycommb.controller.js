@@ -75,6 +75,26 @@ async function handleWebhook(req, res) {
     }
 }
 
+/**
+ * Get webhook logs
+ * GET /api/honeycommb/webhook-logs
+ */
+async function getWebhookLogs(req, res) {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const logs = await WebhookLog.find()
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .select('-__v');
+
+        res.json(logs);
+    } catch (error) {
+        console.error('❌ Error fetching webhook logs:', error);
+        res.status(500).json({ error: "Failed to fetch webhook logs" });
+    }
+}
+
 module.exports = {
-    handleWebhook
+    handleWebhook,
+    getWebhookLogs
 };
