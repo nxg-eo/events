@@ -10,6 +10,8 @@ const errorMiddleware = require('./middlewares/error.middleware');
 // Import routes
 const honeycommbWebhookRoutes = require('./routes/webhooks/honeycommb.routes');
 const honeycommbRoutes = require('./routes/honeycommb.routes');
+const eventsRoutes = require('./routes/events.routes');
+const authRoutes = require('./routes/auth.routes');
 const honeycommbController = require('./controllers/webhooks/honeycommb.controller');
 
 // Create Express app
@@ -83,10 +85,11 @@ app.use('/api/webhooks', honeycommbWebhookRoutes);
 // Honeycommb API routes (for frontend)
 app.use('/api/honeycommb', honeycommbRoutes);
 
-// API routes (to be added later)
-// app.use('/api/events', eventRoutes);
-// app.use('/api/auth', authRoutes);
-// etc.
+// Events API routes
+app.use('/api/events', eventsRoutes);
+
+// Auth API routes
+app.use('/api/auth', authRoutes);
 
 // ==================== ERROR HANDLING ====================
 app.use(errorMiddleware);
