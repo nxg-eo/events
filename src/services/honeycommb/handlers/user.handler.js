@@ -17,6 +17,14 @@ const HoneycommbUser = mongoose.model("HoneycommbUser", honeycommbUserSchema);
 
 async function handleUserCreated(data) {
     try {
+        // Handle test data vs real Honeycommb data
+        const isTestData = !data.id && data.user_id;
+
+        if (isTestData) {
+            console.log(`🧪 Test User Created: ${data.name} (${data.user_id})`);
+            return { status: 'success', message: 'Test user created (not saved to DB)' };
+        }
+
         const user = new HoneycommbUser({
             hc_user_id: data.id,
             name: data.name,
