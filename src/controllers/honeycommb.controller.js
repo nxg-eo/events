@@ -1,6 +1,7 @@
 const HoneycommbEvent = require('../models/honeycommb/HoneycommbEvent');
 const HoneycommbUser = require('../models/honeycommb/HoneycommbUser');
 const HoneycommbPost = require('../models/honeycommb/HoneycommbPost');
+const WebhookLog = require('../models/honeycommb/WebhookLog');
 
 /**
  * Get Honeycommb events for frontend display
@@ -55,7 +56,32 @@ async function getStats(req, res) {
     }
 }
 
+/**
+ * Get webhook logs for admin monitoring
+ * GET /api/honeycommb/webhook-logs
+ */
+async function getWebhookLogs(req, res) {
+    try {
+        const logs = await WebhookLog.find({})
+            .sort({ createdAt: -1 })
+            .limit(50)
+            .select('-__v');
+
+        res.json({
+            success: true,
+            logs: logs
+        });
+    } catch (error) {
+        console.error('Error fetching webhook logs:', error);
+        res.status(500).json({
+            success: false,
+            error: "Failed to fetch webhook logs"
+        });
+    }
+}
+
 module.exports = {
     getEvents,
-    getStats
+    getStats,
+    getWebhookLogs
 };
