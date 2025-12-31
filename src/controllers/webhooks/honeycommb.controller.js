@@ -19,25 +19,42 @@ async function handleWebhook(req, res) {
         }
 
         const payload = JSON.parse(rawBody);
-        const { event, data, timestamp } = payload;
 
-        console.log(`🔗 Honeycommb Webhook Received: ${event}`, { data, timestamp });
+        // Handle Honeycommb's webhook payload structure
+        // They send the event data directly, not in {event, data, timestamp} format
+        let eventType, eventData;
+
+        if (payload.event && payload.data) {
+            // Standard format: {event: "event.created", data: {...}}
+            eventType = payload.event;
+            eventData = payload.data;
+        } else if (payload.type) {
+            // Honeycommb format: direct event object
+            eventType = `${payload.type}.${payload.id ? 'updated' : 'created'}`;
+            eventData = payload;
+        } else {
+            // Unknown format
+            eventType = 'unknown';
+            eventData = payload;
+        }
+
+        console.log(`🔗 Honeycommb Webhook Received: ${eventType}`, { eventData });
 
         // Log webhook to database
         await new WebhookLog({
-            event,
+            event: eventType,
             payload,
             ip_address: req.ip,
             user_agent: req.get('User-Agent')
         }).save();
 
         // Route event to handler
-        const result = await routeEvent(event, data);
+        const result = await routeEvent(eventType, eventData);
 
-        console.log(`✅ Webhook ${event} processed successfully`);
+        console.log(`✅ Webhook ${eventType} processed successfully`);
         res.json({
             success: true,
-            message: `Webhook ${event} processed successfully`,
+            message: `Webhook ${eventType} processed successfully`,
             result
         });
 
@@ -47,8 +64,8 @@ async function handleWebhook(req, res) {
         // Log error to database
         try {
             await new WebhookLog({
-                event: req.body?.event || 'unknown',
-                payload: req.body || {},
+                event: eventType || 'unknown',
+                payload: payload || {},
                 status: 'error',
                 error_message: error.message,
                 ip_address: req.ip,
