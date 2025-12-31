@@ -1,6 +1,6 @@
 const { verifySignature } = require('../../services/honeycommb/verifySignature');
 const { routeEvent } = require('../../services/honeycommb/eventRouter');
-const WebhookLog = require('../models/honeycommb/WebhookLog');
+const WebhookLog = require('../../models/honeycommb/WebhookLog');
 
 /**
  * Handle Honeycommb webhook
