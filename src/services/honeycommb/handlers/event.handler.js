@@ -1,4 +1,4 @@
-const HoneycommbEvent = require('../../models/honeycommb/HoneycommbEvent');
+const HoneycommbEvent = require('../../../models/honeycommb/HoneycommbEvent');
 
 async function handleEventCreated(data) {
     try {
