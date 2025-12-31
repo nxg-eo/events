@@ -1,4 +1,4 @@
-const HoneycommbUser = require('../../models/honeycommb/HoneycommbUser');
+const HoneycommbUser = require('../../../models/honeycommb/HoneycommbUser');
 
 async function handleUserCreated(data) {
     try {
