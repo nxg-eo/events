@@ -8,6 +8,7 @@ const WebhookLog = require('../../models/honeycommb/WebhookLog');
  */
 async function handleWebhook(req, res) {
     let eventType = 'unknown'; // Declare outside try block for error logging
+    let payload = {}; // Declare outside try block for error logging
 
     try {
         const rawBody = req.rawBody;
@@ -20,7 +21,7 @@ async function handleWebhook(req, res) {
             return res.status(401).json({ error: "Invalid signature" });
         }
 
-        const payload = JSON.parse(rawBody);
+        payload = JSON.parse(rawBody);
 
         // Handle Honeycommb's webhook payload structure
         // They send the event data directly, not in {event, data, timestamp} format
