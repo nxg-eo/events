@@ -25,11 +25,28 @@ function verifySignature(rawBody, signatureHeader) {
             .update(rawBody, 'utf8')
             .digest('hex');
 
-        // Use timing-safe comparison to prevent timing attacks
-        const isValid = crypto.timingSafeEqual(
-            Buffer.from(expectedSignature, 'utf8'),
-            Buffer.from(signatureHeader, 'utf8')
-        );
+        // Handle signature header format (may or may not include 'sha1=' prefix)
+        let receivedSignature = signatureHeader;
+        if (signatureHeader.startsWith('sha1=')) {
+            receivedSignature = signatureHeader.substring(5);
+        }
+
+        // For security, use constant-time comparison when lengths match
+        let isValid = false;
+        if (expectedSignature.length === receivedSignature.length) {
+            try {
+                isValid = crypto.timingSafeEqual(
+                    Buffer.from(expectedSignature, 'utf8'),
+                    Buffer.from(receivedSignature, 'utf8')
+                );
+            } catch (timingError) {
+                // Fall back to regular comparison if timing-safe fails
+                isValid = expectedSignature === receivedSignature;
+            }
+        } else {
+            // Lengths don't match, definitely invalid
+            isValid = false;
+        }
 
         if (isValid) {
             console.log('✅ Webhook signature verified');
