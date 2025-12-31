@@ -1,19 +1,6 @@
 const { verifySignature } = require('../../services/honeycommb/verifySignature');
 const { routeEvent } = require('../../services/honeycommb/eventRouter');
-const mongoose = require('mongoose');
-
-// Webhook Log Model
-const webhookLogSchema = new mongoose.Schema({
-    event: { type: String, required: true },
-    payload: { type: mongoose.Schema.Types.Mixed, required: true },
-    processed_at: { type: Date, default: Date.now },
-    status: { type: String, enum: ["success", "error"], default: "success" },
-    error_message: String,
-    ip_address: String,
-    user_agent: String
-}, { timestamps: true });
-
-const WebhookLog = mongoose.model("WebhookLog", webhookLogSchema);
+const WebhookLog = require('../models/honeycommb/WebhookLog');
 
 /**
  * Handle Honeycommb webhook
