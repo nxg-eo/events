@@ -7,6 +7,8 @@ const WebhookLog = require('../../models/honeycommb/WebhookLog');
  * POST /api/webhooks/honeycommb
  */
 async function handleWebhook(req, res) {
+    let eventType = 'unknown'; // Declare outside try block for error logging
+
     try {
         const rawBody = req.rawBody;
         const signatureHeader = req.get('X-Honeycommb-Signature');
@@ -22,7 +24,7 @@ async function handleWebhook(req, res) {
 
         // Handle Honeycommb's webhook payload structure
         // They send the event data directly, not in {event, data, timestamp} format
-        let eventType, eventData;
+        let eventData;
 
         if (payload.event && payload.data) {
             // Standard format: {event: "event.created", data: {...}}
