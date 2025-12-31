@@ -9,14 +9,16 @@ const config = require('../../config/honeycommb.config');
  */
 function verifySignature(rawBody, signatureHeader) {
     try {
+        // If no webhook secret is configured, skip signature verification
         if (!config.WEBHOOK_SECRET) {
-            console.error('❌ HONEYCOMMB_WEBHOOK_SECRET not configured');
-            return false;
+            console.warn('⚠️ HONEYCOMMB_WEBHOOK_SECRET not configured - skipping signature verification');
+            return true;
         }
 
+        // If no signature header is provided, accept the webhook (Honeycommb makes secret optional)
         if (!signatureHeader) {
-            console.warn('⚠️ Missing X-Honeycommb-Signature header (expected during testing)');
-            return false;
+            console.warn('⚠️ Missing X-Honeycommb-Signature header - accepting webhook (secret is optional)');
+            return true;
         }
 
         // Compute expected signature
