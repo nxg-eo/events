@@ -9,54 +9,18 @@ const config = require('./src/config/env');
 
 // ========== CRITICAL: ENABLE CORS FIRST ==========
 app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) return callback(null, true);
-
-        const allowedOrigins = [
-            "http://localhost:3000",
-            "http://localhost:8000",
-            "http://localhost:8080",
-            "http://127.0.0.1:8000",
-            "http://127.0.0.1:3000",
-            "https://eodubai.com",
-            "https://www.eodubai.com",
-            "https://events-production-f2b8.up.railway.app"
-        ].filter(Boolean);
-
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.warn(`CORS blocked origin: ${origin}`);
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+    origin: [
+        'https://eodubai.com',
+        'https://www.eodubai.com'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 
-// ========== STATIC FILE SERVING ==========
-// This is the KEY configuration for serving uploaded images
+app.options('*', cors());
 
-// Method 1: Serve entire public directory (RECOMMENDED)
-app.use(express.static(path.join(__dirname, 'public'), {
-    setHeaders: (res, filePath) => {
-        // Set proper cache headers
-        res.setHeader('Access-Control-Allow-Origin', '*');
-
-        // Set correct MIME type
-        if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
-            res.setHeader('Content-Type', 'image/jpeg');
-        } else if (filePath.endsWith('.png')) {
-            res.setHeader('Content-Type', 'image/png');
-        } else if (filePath.endsWith('.gif')) {
-            res.setHeader('Content-Type', 'image/gif');
-        } else if (filePath.endsWith('.webp')) {
-            res.setHeader('Content-Type', 'image/webp');
-        }
-    }
-}));
+// Static files are now served from src/app.js only
 
 // ========== CREATE REQUIRED DIRECTORIES ==========
 const uploadDirs = [

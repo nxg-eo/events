@@ -24,7 +24,10 @@ const app = express();
 
 // ===== CRITICAL: Static file serving MUST BE FIRST =====
 const path = require('path');
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use(
+  '/uploads',
+  express.static(path.join(process.cwd(), 'public/uploads'))
+);
 
 // ==================== MIDDLEWARE ====================
 
