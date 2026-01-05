@@ -18,9 +18,13 @@ app.use(cors({
     credentials: true
 }));
 
-app.options('*', cors());
+app.options('/*', cors());
 
-// Static files are now served from src/app.js only
+// ========== STATIC FILE SERVING FOR UPLOADS ==========
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, 'public/uploads'))
+);
 
 // ========== CREATE REQUIRED DIRECTORIES ==========
 const uploadDirs = [
