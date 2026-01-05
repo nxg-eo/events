@@ -9,9 +9,31 @@ const config = require('./src/config/env');
 
 // ========== CRITICAL: ENABLE CORS FIRST ==========
 app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin) return callback(null, true);
+
+        const allowedOrigins = [
+            "http://localhost:3000",
+            "http://localhost:8000",
+            "http://localhost:8080",
+            "http://127.0.0.1:8000",
+            "http://127.0.0.1:3000",
+            "https://eodubai.com",
+            "https://www.eodubai.com",
+            "https://events-production-f2b8.up.railway.app"
+        ].filter(Boolean);
+
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.warn(`CORS blocked origin: ${origin}`);
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
 // ========== STATIC FILE SERVING ==========
