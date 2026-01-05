@@ -31,31 +31,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 // Raw body middleware (MUST be first for webhook signature verification)
 app.use('/api/webhooks', rawBodyMiddleware);
 
-// CORS configuration
-app.use(cors({
-    origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) return callback(null, true);
-
-        const allowedOrigins = [
-            "http://localhost:3000",
-            "http://localhost:8000",
-            "http://localhost:8080",
-            "http://127.0.0.1:8000",
-            "http://127.0.0.1:3000",
-            "https://eodubai.com",
-            config.FRONTEND_URL
-        ].filter(Boolean);
-
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            console.warn(`CORS blocked origin: ${origin}`);
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    credentials: true
-}));
+// CORS is now handled in server.js - removed duplicate configuration
 
 // Body parsing
 app.use(express.json());
