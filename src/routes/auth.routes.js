@@ -2,6 +2,8 @@
 const express = require('express');
 const router = express.Router();
 const googleOAuth = require('../services/googleOAuth.service');
+const authController = require('../controllers/auth.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 // OAuth routes for Google authentication
 router.get('/google', (req, res) => {
@@ -81,5 +83,11 @@ router.get('/google/status', (req, res) => {
     message: isAuthenticated ? 'Google OAuth is connected' : 'Google OAuth authentication required'
   });
 });
+
+// User authentication routes
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/profile', authMiddleware, authController.getProfile);
+router.put('/profile', authMiddleware, authController.updateProfile);
 
 module.exports = router;
