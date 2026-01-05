@@ -1,7 +1,9 @@
 const Event = require('../models/Event');
+const HoneycommbEvent = require('../models/honeycommb/HoneycommbEvent');
 const User = require('../models/User');
 const Registration = require('../models/Registration');
 const multer = require('multer');
+const mongoose = require('mongoose');
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage(); // Store files in memory for now
@@ -57,9 +59,49 @@ async function getEvents(req, res) {
  */
 async function getEventById(req, res) {
     try {
-        const event = await Event.findById(req.params.id)
-            .populate('createdBy', 'name email')
-            .select('-__v');
+        const id = req.params.id;
+        let event = null;
+
+        // Check if it's a valid MongoDB ObjectId (EO Dubai event)
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            event = await Event.findById(id)
+                .populate('createdBy', 'name email')
+                .select('-__v');
+        }
+
+        // Check if it's a Honeycommb event ID (starts with "honeycommb_")
+        if (!event && id.startsWith('honeycommb_')) {
+            const hcEventId = id.replace('honeycommb_', '');
+            if (!isNaN(hcEventId)) {
+                event = await HoneycommbEvent.findOne({ hc_event_id: parseInt(hcEventId) });
+                if (event) {
+                    // Format Honeycommb event to match EO event structure
+                    event = {
+                        _id: `honeycommb_${event.hc_event_id}`,
+                        title: event.title,
+                        description: event.description,
+                        startDate: event.start_date,
+                        endDate: event.end_date,
+                        location: event.location,
+                        status: event.status,
+                        capacity: event.capacity,
+                        source: 'HONEYCOMMB',
+                        createdAt: event.created_at,
+                        updatedAt: event.updated_at
+                    };
+                }
+            }
+        }
+
+        // Check if it's an EO event with custom ID format (starts with "eo_")
+        if (!event && id.startsWith('eo_')) {
+            const eoId = id.replace('eo_', '');
+            if (!isNaN(eoId)) {
+                // Try to find by some other field, or just return not found for now
+                // This might need adjustment based on actual data structure
+                event = null;
+            }
+        }
 
         if (!event) {
             return res.status(404).json({
@@ -68,9 +110,27 @@ async function getEventById(req, res) {
             });
         }
 
+        // Calculate registration counts and spots left
+        const confirmedCount = await Registration.countDocuments({
+            eventId: event._id,
+            status: 'confirmed'
+        });
+        const interestedCount = await Registration.countDocuments({
+            eventId: event._id,
+            status: 'interested'
+        });
+
+        // Add calculated fields to event object
+        const eventWithCounts = {
+            ...event.toObject(),
+            confirmedCount,
+            interestedCount,
+            spotsLeft: event.capacity ? event.capacity - confirmedCount : null
+        };
+
         res.json({
             success: true,
-            event: event
+            event: eventWithCounts
         });
     } catch (error) {
         console.error('Error fetching event:', error);
@@ -145,7 +205,14 @@ async function createEvent(req, res) {
 async function registerForEvent(req, res) {
     try {
         const eventId = req.params.id;
-        const userId = req.user._id;
+        const userId = req.user?._id; // Allow null for testing without auth
+
+        // Get registration data from request body
+        const {
+            ticket_type,
+            guests = [],
+            no_show_consent = false
+        } = req.body;
 
         // Check if event exists and is upcoming
         const event = await Event.findById(eventId);
@@ -165,8 +232,8 @@ async function registerForEvent(req, res) {
 
         // Check if user is already registered
         const existingRegistration = await Registration.findOne({
-            event: eventId,
-            user: userId
+            eventId: eventId,
+            userId: userId
         });
 
         if (existingRegistration) {
@@ -177,36 +244,58 @@ async function registerForEvent(req, res) {
         }
 
         // Check spots availability
-        if (event.spotsLeft <= 0) {
+        const totalAttendees = 1 + guests.length; // registrant + guests
+        if (event.capacity && event.capacity - totalAttendees < 0) {
             return res.status(400).json({
                 success: false,
-                error: "No spots available"
+                error: "Not enough spots available for all attendees"
             });
         }
 
+        // Calculate total amount
+        const basePrice = ticket_type === 'member' ?
+            (event.memberPrice || 0) :
+            (event.guestPrice || 0);
+        const totalAmount = basePrice * totalAttendees;
+
         // Create registration
         const registration = new Registration({
-            event: eventId,
-            user: userId,
-            status: 'confirmed'
+            eventId: eventId,
+            userId: userId,
+            ticketType: ticket_type,
+            totalAmount: totalAmount,
+            guests: guests,
+            totalGuests: totalAttendees,
+            noShowConsent: no_show_consent,
+            status: totalAmount > 0 ? 'pending' : 'confirmed' // Require payment if amount > 0
         });
 
         await registration.save();
 
-        // Update event spots
-        event.spotsLeft -= 1;
-        await event.save();
+        // Update event capacity if confirmed
+        if (registration.status === 'confirmed') {
+            event.capacity -= totalAttendees;
+            await event.save();
+        }
 
         res.json({
             success: true,
-            message: "Successfully registered for event",
-            registration: registration
+            message: totalAmount > 0 ?
+                "Registration created. Please complete payment." :
+                "Successfully registered for event",
+            registration: {
+                id: registration._id,
+                status: registration.status,
+                amount: totalAmount
+            },
+            amount: totalAmount,
+            registrationId: registration._id
         });
     } catch (error) {
         console.error('Error registering for event:', error);
         res.status(500).json({
             success: false,
-            error: "Failed to register for event"
+            error: error.message || "Failed to register for event"
         });
     }
 }

@@ -12,12 +12,19 @@ const honeycommbWebhookRoutes = require('./routes/webhooks/honeycommb.routes');
 const honeycommbRoutes = require('./routes/honeycommb.routes');
 const eventsRoutes = require('./routes/events.routes');
 const authRoutes = require('./routes/auth.routes');
+const analyticsRoutes = require('./routes/analytics.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const usersRoutes = require('./routes/users.routes');
+const paymentsRoutes = require('./routes/payments.routes');
+const adminEventsRoutes = require('./routes/admin/events.routes');
 const honeycommbController = require('./controllers/webhooks/honeycommb.controller');
 
 // Create Express app
 const app = express();
+
+// ===== CRITICAL: Static file serving MUST BE FIRST =====
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // ==================== MIDDLEWARE ====================
 
@@ -54,9 +61,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use("/uploads", express.static("uploads"));
-
 // ==================== DATABASE CONNECTION ====================
 const mongoUri = config.MONGODB_URI || "mongodb://localhost:27017/eo_dubai_events";
 
@@ -81,6 +85,22 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Test route for image serving
+app.get('/test-image', (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    const imagePath = path.join(__dirname, '../public/uploads/events/mainEventPhoto-1767638888381-750950004.jpg');
+
+    console.log('Test route: Checking image path:', imagePath);
+    console.log('File exists:', fs.existsSync(imagePath));
+
+    if (fs.existsSync(imagePath)) {
+        res.sendFile(imagePath);
+    } else {
+        res.status(404).json({ error: 'Image not found', path: imagePath });
+    }
+});
+
 // Webhook routes
 app.use('/api/webhooks', honeycommbWebhookRoutes);
 
@@ -90,6 +110,9 @@ app.use('/api/honeycommb', honeycommbRoutes);
 // Events API routes
 app.use('/api/events', eventsRoutes);
 
+// OAuth routes (needs to be before API routes for callback URL)
+app.use('/auth', authRoutes);
+
 // Auth API routes
 app.use('/api/auth', authRoutes);
 
@@ -98,6 +121,15 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Users API routes (admin only)
 app.use('/api/users', usersRoutes);
+
+// Payment API routes
+app.use('/api/payments', paymentsRoutes);
+
+// Admin events API routes
+app.use('/api/admin/events', adminEventsRoutes);
+
+// Analytics API routes
+app.use('/api/analytics', analyticsRoutes);
 
 // ==================== ERROR HANDLING ====================
 app.use(errorMiddleware);
