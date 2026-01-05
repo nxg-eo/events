@@ -144,10 +144,12 @@ app.get('/api/test/list-images', (req, res) => {
 });
 
 const PORT = config.PORT;
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`🚀 EO Dubai Events Backend running on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+    console.log(`🚀 EO Dubai Events Backend running on ${HOST}:${PORT}`);
     console.log(`📦 MongoDB: Connected`);
     console.log(`🌍 Environment: ${config.NODE_ENV || "development"}`);
+    console.log(`🔗 Railway PORT: ${process.env.PORT || 'not set'}`);
 });
