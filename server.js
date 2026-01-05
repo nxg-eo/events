@@ -18,7 +18,7 @@ app.use(cors({
     credentials: true
 }));
 
-app.options('/*', cors());
+
 
 // ========== STATIC FILE SERVING FOR UPLOADS ==========
 app.use(
