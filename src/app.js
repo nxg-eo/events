@@ -21,6 +21,14 @@ const honeycommbController = require('./controllers/webhooks/honeycommb.controll
 
 // Create Express app
 const app = express();
+// ==================== CORS (MUST BE FIRST) ====================
+app.use(cors({
+  origin: [
+    'https://eodubai.com',
+    'https://www.eodubai.com'
+  ],
+  credentials: true
+}));
 
 // ===== CRITICAL: Static file serving MUST BE FIRST =====
 const path = require('path');

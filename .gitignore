@@ -11,6 +11,13 @@ src/eo-payments-tracking-*.json
 src/client_secret_*.json
 src/services/oauth-tokens.json
 
+# Database scripts with credentials (NEVER commit these)
+*-event-*.js
+fix-*.js
+update-*.js
+clear-*.js
+check-*.js
+
 # Logs
 logs
 *.log
